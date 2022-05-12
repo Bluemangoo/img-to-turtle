@@ -39,6 +39,11 @@ def d(x, y):
     return x - canvasX // 2, - y + canvasY // 2
 
 
+def g(r, g, b, l):
+    pencolor(r, g, b)
+    forward(l)
+
+
 screensize(canvasX, canvasY, "white")
 penup()
 goto(d(0, 0))
@@ -60,7 +65,6 @@ for y in range(im.size[1]):
         pix = im.getpixel((x, y))
         n += 1
         if x == im.size[0] - 1 or str(im.getpixel((x, y))) != str(im.getpixel((x + 1, y))):
-            f.write("pencolor" + str(pix)[:colorFormat] + ")" + "\n")
-            f.write("forward(" + str(n) + ")\n")
+            f.write("g" + str(pix)[:colorFormat] + "," + str(n) + ")\n")
             n = 0
 f.write("done()\n")
