@@ -7,15 +7,19 @@
 
 from PIL import Image
 
+zh_cn={"image.input.filename":"请输入图片的文件名（包含扩展名）：\n","image.output.size":"图片的尺寸为：%dx%d"}
+en={"image.input.filename":"input filename(include extra name): \n","image.output.size":"the size of image: %dx%d"}
+lang=zh_cn
+
 f = open('test.py', 'w')
 
-filename = input("请输入图片的文件名（包含扩展名）：\n")
+filename = input(lang["image.input.filename"])
 colorFormat = -1
 if filename[-3:] == "png":
     colorFormat -= 5
 im = Image.open(filename)
 x, y = im.size
-print(x, y)
+print(lang["image.output.size"]%(x, y))
 
 f.write(
     '''"""
@@ -43,6 +47,10 @@ def g(r, g, b, l):
     pencolor(r, g, b)
     forward(l)
 
+def t(x, y):
+    penup()
+    goto(d(x, y))
+    pendown()
 
 screensize(canvasX, canvasY, "white")
 penup()
@@ -57,14 +65,19 @@ hideturtle()
 '''.format(x))
 
 for y in range(im.size[1]):
-    f.write("penup()\n")
-    f.write("goto(d(0, {}))\n".format(y))
-    f.write("pendown()\n")
     n = 0
-    for x in range(im.size[0] - 1):
+    flag = True
+    flag2 = True
+    for x in range(im.size[0]):
         pix = im.getpixel((x, y))
         n += 1
-        if x == im.size[0] - 1 or str(im.getpixel((x, y))) != str(im.getpixel((x + 1, y))):
-            f.write("g" + str(pix)[:colorFormat] + "," + str(n) + ")\n")
+        if x == im.size[0] - 1 and flag == False and str(pix)[:colorFormat]=="(255, 255, 255":
+            flag2 = False
+        if (x == im.size[0] - 1 or str(im.getpixel((x, y))) != str(im.getpixel((x + 1, y)))) and flag2:
+            if flag:
+                f.write("t(0, {})\n".format(y))
+                flag = False
+            f.write("g" + str(pix)[:colorFormat] + ", " + str(n) + ")\n")
             n = 0
+            
 f.write("done()\n")
