@@ -7,21 +7,34 @@
 
 from PIL import Image
 
-zh_cn={"image.input.filename":"请输入图片的文件名（包含扩展名）：\n","image.output.size":"图片的尺寸为：%dx%d"}
-en={"image.input.filename":"input filename(include extra name): \n","image.output.size":"the size of image: %dx%d"}
-lang=zh_cn
-    
-def imgToTurtle(quiet, filename):
+zh_cn = {"image.input.filename": "请输入图片的文件名（包含扩展名）：\n", "image.output.size": "图片的尺寸为：%dx%d"}
+en = {"image.input.filename": "input filename(include extra name): \n", "image.output.size": "the size of image: %dx%d"}
+lang = zh_cn
 
+
+def has_transparency(img):
+    if img.mode == "P":
+        transparent = img.info.get("transparency", -1)
+        for _, index in img.getcolors():
+            if index == transparent:
+                return True
+    elif img.mode == "RGBA":
+        extrema = img.getextrema()
+        if extrema[3][0] < 255:
+            return True
+    return False
+
+
+def img_to_turtle(quiet, filename):
     f = open('test.py', 'w')
 
-    colorFormat = -1
-    if filename[-3:] == "png":
-        colorFormat -= 5
+    color_format = -1
     im = Image.open(filename)
+    if has_transparency(im):
+        color_format -= 5
     x, y = im.size
-    print(lang["image.output.size"]%(x, y))
-
+    if not quiet:
+        print(lang["image.output.size"] % (x, y))
     f.write(
         '''"""
 @Author: Bluemangoo
@@ -72,18 +85,20 @@ hideturtle()
         for x in range(im.size[0]):
             pix = im.getpixel((x, y))
             n += 1
-            if x == im.size[0] - 1 and flag == False and str(pix)[:colorFormat]=="(255, 255, 255":
+            if (x == im.size[0] - 1) and (not flag) and (str(pix)[:color_format] == "(255, 255, 255"):
                 flag2 = False
             if (x == im.size[0] - 1 or str(im.getpixel((x, y))) != str(im.getpixel((x + 1, y)))) and flag2:
                 if flag:
                     f.write("t(0, {})\n".format(y))
                     flag = False
-                f.write("g" + str(pix)[:colorFormat] + ", " + str(n) + ")\n")
+                f.write("g" + str(pix)[:color_format] + ", " + str(n) + ")\n")
                 n = 0
-                
+
     f.write("done()\n")
 
+
 def main():
-    imgToTurtle(False, input(lang["image.input.filename"]))
+    img_to_turtle(False, input(lang["image.input.filename"]))
+
 
 main()
